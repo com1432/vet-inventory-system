@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ title }}</h1>
+
+    <div class="row mb-4">
+        <!-- Export Options -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Export Reports</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <a href="?format=pdf&type=all" class="btn btn-primary">Export All (PDF)</a>
+                        <a href="?format=excel&type=all" class="btn btn-success">Export All (Excel)</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Summary Cards -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Total Inventory</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-text">{{ total_supplies }}</h2>
+                    <p class="text-muted">Total items in inventory</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Low Stock Items</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-text">{{ low_stock_count }}</h2>
+                    <p class="text-muted">Items below reorder level</p>
+                    <a href="?format=pdf&type=low_stock" class="btn btn-sm btn-warning">Export PDF</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">Expiring Soon</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-text">{{ expiring_soon_count }}</h2>
+                    <p class="text-muted">Items expiring within 30 days</p>
+                    <a href="?format=pdf&type=expiring" class="btn btn-sm btn-danger">Export PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Items Table -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for supply in supplies %}
+                                <tr>
+                                    <td>{{ supply.name }}</td>
+                                    <td>{{ supply.category.name }}</td>
+                                    <td>{{ supply.quantity }}</td>
+                                    <td>
+                                        {% if supply.quantity <= supply.reorder_level %}
+                                            <span class="badge bg-warning">Low Stock</span>
+                                        {% endif %}
+                                        {% if supply.expiration_date %}
+                                            <span class="badge bg-{{ supply.expiration_status }}">
+                                                {{ supply.expiration_date|date:"M d, Y" }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

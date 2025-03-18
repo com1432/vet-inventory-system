@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card shadow-lg">
+    <div class="card-header bg-danger text-white">
+        <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete</h4>
+    </div>
+    <div class="card-body">
+        <p class="mb-3">Are you sure you want to delete the category "{{ object.name }}"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Delete
+            </button>
+            <a href="{% url 'vet_supplies:category-list' %}" class="btn btn-secondary ms-2">
+                <i class="fas fa-times me-2"></i>Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Automatically show the modal when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    });
+
+    // Handle modal dismissal redirect
+    document.getElementById('deleteModal').addEventListener('hidden.bs.modal', function () {
+        window.location.href = "{{ success_url }}";
+    });
+</script>
+{% endblock %}

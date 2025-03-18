@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container text-center">
+        <div class="hero-content">
+            <div class="logo-container mb-4 animate-fade-in">
+                <img src="{% static 'images/provet-logo.jpg' %}" alt="Veterinary Office Logo" class="vet-logo mb-3">
+            </div>
+            <h1 class="display-4 fw-bold mb-4 text-white animate-fade-in">
+                Welcome to the Masbate Provincial<br>Veterinary Office
+            </h1>
+            <p class="lead text-white mb-5 animate-fade-in-delay">
+                Streamlined Inventory Management System for Enhanced Operations
+            </p>
+
+            <!-- Quick Action Cards -->
+            <div class="row justify-content-center g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 vet-card hover-lift">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-syringe fa-3x mb-3 text-vet"></i>
+                            <h5 class="card-title mb-3 text-vet-dark">Veterinary Supplies</h5>
+                            <p class="card-text mb-4 text-muted">Manage medical supplies and equipment</p>
+                            <a href="{% url 'vet_supplies:supply-list' %}" class="btn btn-vet w-100">
+                                <i class="fas fa-arrow-right me-2"></i>Access Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 vet-card hover-lift">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-box fa-3x mb-3 text-vet"></i>
+                            <h5 class="card-title mb-3 text-vet-dark">Office Supplies</h5>
+                            <p class="card-text mb-4 text-muted">Track office materials and resources</p>
+                            <a href="{% url 'office_supplies:supply-list' %}" class="btn btn-vet w-100">
+                                <i class="fas fa-arrow-right me-2"></i>Access Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hero-section {
+    min-height: 100vh;
+    background: transparent;  /* Remove gradient background */
+    padding-top: 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Remove the hero-section::before pattern overlay */
+.hero-section::before {
+    display: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.text-white {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.vet-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.text-vet {
+    color: var(--vet-primary);
+}
+
+.text-vet-dark {
+    color: var(--vet-dark);
+}
+
+.btn-vet {
+    background: var(--vet-primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-vet:hover {
+    background: var(--vet-secondary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(43, 124, 133, 0.2);
+}
+
+.hover-lift {
+    transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.animate-fade-in {
+    animation: fadeIn 1s ease-out;
+}
+
+.animate-fade-in-delay {
+    animation: fadeIn 1s ease-out 0.5s both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.vet-logo {
+    max-width: 150px;
+    height: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+@media (max-width: 768px) {
+    .hero-content {
+        padding: 2rem 0;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+
+    .vet-card {
+        margin: 0 1rem;
+    }
+}
+</style>
+{% endblock %}

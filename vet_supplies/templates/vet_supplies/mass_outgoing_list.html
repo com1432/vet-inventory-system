@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'vet_supplies:supply-list' %}" class="btn btn-outline-secondary hover-lift">
+            <i class="fas fa-arrow-left me-2"></i>Back to Inventory
+        </a>
+        <h2 class="mb-0"><i class="fas fa-syringe me-2 text-vet"></i>Medical Transactions</h2>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-lg-4">
+                    <label class="form-label text-muted small">Search Transactions</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0" 
+                               placeholder="Search by medication or items..." value="{{ request.GET.search }}">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <label class="form-label text-muted small">Date Range</label>
+                    <div class="d-flex gap-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-calendar-alt text-muted"></i>
+                            </span>
+                            <input type="date" name="date_from" class="form-control border-start-0" 
+                                   value="{{ request.GET.date_from }}">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-calendar-alt text-muted"></i>
+                            </span>
+                            <input type="date" name="date_to" class="form-control border-start-0" 
+                                   value="{{ request.GET.date_to }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-vet flex-grow-1">
+                            <i class="fas fa-filter me-2"></i>Apply
+                        </button>
+                        {% if request.GET %}
+                        <a href="{% url 'vet_supplies:mass-outgoing-list' %}" class="btn btn-light border">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transactions Card -->
+    <div class="card shadow-vet border-0">
+        <div class="card-header bg-vet-gradient text-white py-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <h4 class="mb-0"><i class="fas fa-history me-2"></i>Medical History</h4>
+                <div class="badge bg-white text-vet">{{ transactions.count }} Records</div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Transaction ID</th>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                            {% for item in transaction.items.all %}
+                            <tr>
+                                <td>{{ transaction.date|date:"M d, Y h:i A" }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        {{ transaction.transaction_id }}
+                                    </span>
+                                </td>
+                                <td>{{ item.supply.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.supply.unit|default:"-" }}</td>
+                                <td>{{ transaction.patient_name }}</td>
+                                <td>{{ transaction.doctor_name }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-light border view-details" 
+                                            data-id="{{ transaction.id }}"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#transactionModal">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <img src="{% static 'img/no-data.svg' %}" alt="No Data" class="mb-3" style="max-width: 200px;">
+                <h5 class="text-muted">No transactions found</h5>
+                <p class="text-muted small">Try adjusting your search or filter criteria</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Details Modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-vet-gradient text-white">
+                <h5 class="modal-title"><i class="fas fa-info-circle me-2"></i>Transaction Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="transactionDetails">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-vet-gradient {
+    background: linear-gradient(135deg, #2c8572, #34a491);
+}
+
+.text-vet {
+    color: #2c8572;
+}
+
+.btn-vet {
+    background-color: #2c8572;
+    color: white;
+}
+
+.btn-vet:hover {
+    background-color: #247561;
+    color: white;
+}
+
+.shadow-vet {
+    box-shadow: 0 0.125rem 0.25rem rgba(44, 133, 114, 0.075);
+}
+
+// ... rest of the styles from office_supplies template but with vet colors ...
+</style>
+
+<script>
+document.querySelectorAll('.view-details').forEach(button => {
+    button.addEventListener('click', function() {
+        const transactionId = this.dataset.id;
+        const detailsContainer = document.getElementById('transactionDetails');
+        
+        fetch(`/vet_supplies/transaction/${transactionId}/`)
+            .then(response => response.json())
+            .then(data => {
+                detailsContainer.innerHTML = `
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Transaction ID</dt>
+                        <dd class="col-sm-8">${data.transaction_id}</dd>
+                        
+                        <dt class="col-sm-4">Date & Time</dt>
+                        <dd class="col-sm-8">${data.date_created}</dd>
+                        
+                        <dt class="col-sm-4">Item Name</dt>
+                        <dd class="col-sm-8">${data.supply_name}</dd>
+                        
+                        <dt class="col-sm-4">Quantity</dt>
+                        <dd class="col-sm-8">${data.quantity} ${data.unit}</dd>
+                        
+                        <dt class="col-sm-4">Patient Name</dt>
+                        <dd class="col-sm-8">${data.patient_name}</dd>
+                        
+                        <dt class="col-sm-4">Doctor</dt>
+                        <dd class="col-sm-8">${data.doctor_name}</dd>
+                        
+                        <dt class="col-sm-4">Notes</dt>
+                        <dd class="col-sm-8">${data.notes || 'No notes provided'}</dd>
+                    </dl>
+                `;
+            })
+            .catch(error => {
+                detailsContainer.innerHTML = '<div class="alert alert-danger">Error loading transaction details</div>';
+            });
+    });
+});
+</script>
+{% endblock %}

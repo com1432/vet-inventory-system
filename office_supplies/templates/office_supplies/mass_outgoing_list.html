@@ -1,0 +1,389 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'office_supplies:supply-list' %}" class="btn btn-outline-secondary hover-lift">
+            <i class="fas fa-arrow-left me-2"></i>Back to Inventory
+        </a>
+        <h2 class="mb-0"><i class="fas fa-truck-moving me-2 text-primary"></i>Outgoing Transactions</h2>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-lg-4">
+                    <label class="form-label text-muted small">Search Transactions</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0" 
+                               placeholder="Search by reason or items..." value="{{ request.GET.search }}">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <label class="form-label text-muted small">Date Range</label>
+                    <div class="d-flex gap-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-calendar-alt text-muted"></i>
+                            </span>
+                            <input type="date" name="date_from" class="form-control border-start-0" 
+                                   value="{{ request.GET.date_from }}" placeholder="From">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-calendar-alt text-muted"></i>
+                            </span>
+                            <input type="date" name="date_to" class="form-control border-start-0" 
+                                   value="{{ request.GET.date_to }}" placeholder="To">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="fas fa-filter me-2"></i>Apply
+                        </button>
+                        {% if request.GET %}
+                        <a href="{% url 'office_supplies:mass-outgoing-list' %}" class="btn btn-light border">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transactions Card -->
+    <div class="card shadow-office border-0">
+        <div class="card-header bg-office-gradient text-white py-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <h4 class="mb-0"><i class="fas fa-history me-2"></i>Transaction History</h4>
+                <div class="badge bg-white text-primary">{{ transactions.count }} Records</div>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-primary-soft">
+                        <tr>
+                            <th class="ps-4">Date & Time</th>
+                            <th>Transaction Reason</th>
+                            <th>Processed By</th>
+                            <th>Items Dispensed</th>
+                            <th class="pe-4 text-end">Total Items</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        {% ifchanged transaction.date|date:"Y-m-d" %}
+                        <tr class="bg-light">
+                            <td colspan="5" class="py-2 ps-4">
+                                <h6 class="mb-0 text-primary">{{ transaction.date|date:"F d, Y" }}</h6>
+                            </td>
+                        </tr>
+                        {% endifchanged %}
+                        <tr class="hover-lift" data-bs-toggle="collapse" data-bs-target="#details-{{ transaction.id }}">
+                            <td class="ps-4">
+                                <small class="text-muted">{{ transaction.date|date:"h:i A" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-office-reason rounded-pill px-3">
+                                    {{ transaction.reason }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm bg-primary text-white rounded-circle me-2">
+                                        {{ transaction.processed_by.username|first|upper }}
+                                    </div>
+                                    {{ transaction.processed_by.get_full_name|default:transaction.processed_by.username }}
+                                </div>
+                            </td>
+                            <td>
+                                {% with items=transaction.outgoing_items.all %}
+                                    {{ items.0.supply.name }}{% if items|length > 1 %} +{{ items|length|add:"-1" }} more{% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="pe-4 text-end">
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ transaction.get_total_items|intcomma }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="collapse" id="details-{{ transaction.id }}">
+                            <td colspan="5" class="bg-light">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Transaction Details</h6>
+                                        <span class="badge bg-secondary">{{ transaction.outgoing_items.count }} items</span>
+                                    </div>
+                                    <div class="row g-3">
+                                        {% for item in transaction.outgoing_items.all %}
+                                        <div class="col-md-4">
+                                            <div class="card h-100 border hover-lift-sm">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <div>
+                                                            <h6 class="mb-1 text-primary">{{ item.supply.name }}</h6>
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-box-open me-2 text-muted"></i>
+                                                                <span>Quantity: {{ item.quantity|intcomma }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <div class="mb-1">Current Stock</div>
+                                                            <span class="badge bg-{{ item.supply.quantity|yesno:'success,danger' }}">
+                                                                {{ item.supply.quantity|intcomma }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-box-open fa-3x mb-3"></i>
+                                    <h5 class="mb-1">No Transactions Found</h5>
+                                    <p class="mb-0">Start by creating your first outgoing transaction</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="card-footer bg-white border-0 py-3">
+                <nav aria-label="Transaction pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        <!-- First Page -->
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <!-- Page Numbers -->
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Last Page -->
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                <div class="text-center mt-2">
+                    <small class="text-muted">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        ({{ page_obj.paginator.count }} total records)
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.bg-office-gradient {
+    background: linear-gradient(135deg, #2b50aa, #3a6ea5);
+}
+
+.hover-lift {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 15px rgba(43, 80, 170, 0.1);
+}
+
+.bg-primary-soft {
+    background-color: rgba(43, 80, 170, 0.05);
+}
+
+.bg-office-reason {
+    background-color: rgba(108, 117, 125, 0.1);
+    color: #2b50aa;
+    font-weight: 500;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.page-link {
+    color: var(--office-primary);
+    border: none;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.page-link:hover {
+    color: #fff;
+    background-color: var(--office-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(43, 80, 170, 0.2);
+}
+
+.page-item.active .page-link {
+    background-color: var(--office-primary);
+    border-color: var(--office-primary);
+}
+
+.page-link:focus {
+    box-shadow: 0 0 0 0.2rem rgba(43, 80, 170, 0.25);
+}
+
+.pagination {
+    margin: 0;
+    gap: 0.25rem;
+}
+
+.page-item.active .page-link {
+    background-color: var(--office-primary);
+    border-color: var(--office-primary);
+    transform: none;
+    box-shadow: none;
+}
+
+.page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.card-footer {
+    background-color: transparent;
+}
+
+.hover-lift-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(43, 80, 170, 0.1);
+}
+
+.input-group-text {
+    background-color: transparent;
+    border-right: none;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    box-shadow: none;
+}
+
+.input-group .form-control:focus + .input-group-text {
+    border-color: var(--office-primary);
+}
+
+.input-group:focus-within {
+    box-shadow: 0 0 0 0.2rem rgba(43, 80, 170, 0.25);
+    border-radius: 0.375rem;
+}
+
+.btn-close {
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.btn-close:hover {
+    opacity: 1;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    
+    // Add click handler for rows
+    document.querySelectorAll('.hover-lift').forEach(row => {
+        row.addEventListener('click', function(e) {
+            if(!e.target.closest('a')) { // Prevent collapse when clicking links
+                const collapseTarget = document.querySelector(this.dataset.bsTarget)
+                new bootstrap.Collapse(collapseTarget, {toggle: true})
+            }
+        })
+    })
+
+    // Close details when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.collapse') && !e.target.closest('.hover-lift')) {
+            document.querySelectorAll('.collapse.show').forEach(collapse => {
+                bootstrap.Collapse.getInstance(collapse).hide();
+            });
+        }
+    });
+
+    // Add date range validation
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const dateFrom = document.querySelector('input[name="date_from"]').value;
+            const dateTo = document.querySelector('input[name="date_to"]').value;
+            
+            if (dateFrom && dateTo && dateFrom > dateTo) {
+                alert('Start date must be before end date');
+                this.value = '';
+            }
+        });
+    });
+})
+</script>
+{% endblock %}

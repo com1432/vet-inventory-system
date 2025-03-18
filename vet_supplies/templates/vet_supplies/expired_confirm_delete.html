@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow-lg">
+    <div class="card-header bg-danger text-white">
+        <h4>Confirm Expired Item Removal</h4>
+    </div>
+    <div class="card-body">
+        <p>Are you sure you want to permanently delete "{{ object.name }}"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Confirm Delete</button>
+            <a href="{% url 'expired-list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

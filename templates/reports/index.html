@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Reports Dashboard</h2>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Veterinary Reports Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-paw me-2"></i>Veterinary Reports</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'vet_supplies:vreports' %}?format=pdf" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-pdf text-danger me-2"></i>Download PDF Report
+                        </a>
+                        <a href="{% url 'vet_supplies:vreports' %}?format=excel" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-excel text-success me-2"></i>Download Excel Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Office Reports Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Office Reports</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'office_supplies:reports' %}?format=pdf" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-pdf text-danger me-2"></i>Download PDF Report
+                        </a>
+                        <a href="{% url 'office_supplies:reports' %}?format=excel" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-excel text-success me-2"></i>Download Excel Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

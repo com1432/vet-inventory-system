@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow-lg">
+    <div class="card-header bg-primary text-white">
+        <h4>{% if object %}Edit{% else %}Add{% endif %} Veterinary Supply</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Manual Input Section -->
+            <div class="row g-3 mb-4">
+                <!-- Name and Category -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Item Name</label>
+                        {{ form.name }}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        {{ form.category }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Management Section -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">Current Quantity</label>
+                        {{ form.quantity }}
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">Reorder Level</label>
+                        <div class="input-group">
+                            {{ form.reorder_level }}
+                            <span class="input-group-text">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                        </div>
+                        <small class="form-text text-muted">Alert when quantity reaches this level</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">Expiration Date</label>
+                        <div class="input-group">
+                            {{ form.expiration_date }}
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                        <small class="form-text text-muted">Leave blank for non-perishables</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description Section -->
+            <div class="mb-4">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-between mt-4">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+                <a href="{% url 'vet_supplies:expired-list' %}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

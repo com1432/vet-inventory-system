@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow-lg">
+    <div class="card-header bg-danger text-white">
+        <h4>Delete Category</h4>
+    </div>
+    <div class="card-body">
+        <p class="lead">Are you sure you want to delete the category "{{ object.name }}"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Confirm Delete
+            </button>
+            <a href="{% url 'office_supplies:category-list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-lg">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Items
+            </h4>
+            <a href="{% url 'office_supplies:supply-list' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to Inventory
+            </a>
+        </div>
+        <div class="card-body">
+            {% if supplies %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Reorder Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supply in supplies %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-box text-danger me-2"></i>
+                                    {{ supply.name }}
+                                </div>
+                            </td>
+                            <td>{{ supply.category.name }}</td>
+                            <td>
+                                <span class="badge bg-danger">{{ supply.quantity }}</span>
+                            </td>
+                            <td>{{ supply.reorder_level }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'office_supplies:supply-update' supply.pk %}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Edit Item">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'office_supplies:supply-delete' supply.pk %}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       title="Delete Item"
+                                       onclick="return confirm('Are you sure you want to delete this item?');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5>No Low Stock Items</h5>
+                <p class="text-muted">All items are above their reorder levels.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+    
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .badge {
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}

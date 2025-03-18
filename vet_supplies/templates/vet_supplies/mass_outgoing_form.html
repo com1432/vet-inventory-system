@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow-lg">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Mass Outgoing Supplies</h4>
+        <a href="{% url 'vet_supplies:supply-list' %}" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+    
+    <div class="card-body">
+        <form method="post" id="outgoingForm" novalidate>
+            {% csrf_token %}
+            
+            <div class="row g-3 mb-4">
+                {% for field in form %}
+                <div class="col-md-6">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ field.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light text-primary">
+                    <h5 class="mb-0">Items</h5>
+                </div>
+                <div class="card-body">
+                    {{ formset.management_form }}
+                    
+                    <!-- Table Headers -->
+                    <div class="row mb-2 fw-bold border-bottom pb-2">
+                        <div class="col-md-6">Supply Item</div>
+                        <div class="col-md-4">Quantity</div>
+                        <div class="col-md-2">Actions</div>
+                    </div>
+                    
+                    <div id="formset-container">
+                        {% for form in formset %}
+                        <div class="formset-row row mb-3 align-items-end">
+                            {{ form.id }}
+                            <div class="col-md-6">
+                                {{ form.supply }}
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.quantity }}
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-danger remove-form-row" title="Remove item">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" id="add-more" class="btn btn-outline-primary mt-3">
+                        <i class="fas fa-plus"></i> Add Item
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'vet_supplies:supply-list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden empty form template -->
+<div id="empty-form" style="display: none;">
+    <div class="formset-row row mb-3 align-items-end">
+        {{ formset.empty_form.id }}
+        <div class="col-md-6">
+            {{ formset.empty_form.supply }}
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="col-md-4">
+            {{ formset.empty_form.quantity }}
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger remove-form-row" title="Remove item">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formsetContainer = document.getElementById('formset-container');
+    const addButton = document.getElementById('add-more');
+    const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS'); // Fixed ID
+    const emptyForm = document.getElementById('empty-form').innerHTML;
+    let formCount = formsetContainer.children.length;
+
+    // Add new form row
+    addButton.addEventListener('click', function() {
+        const newFormHtml = emptyForm.replace(/__prefix__/g, formCount);
+        const newDiv = document.createElement('div');
+        newDiv.innerHTML = newFormHtml;
+        formsetContainer.appendChild(newDiv.firstElementChild);
+        formCount++;
+        updateTotalForms();
+    });
+
+    // Event delegation for delete buttons
+    formsetContainer.addEventListener('click', function(e) {
+        if(e.target.closest('.remove-form-row')) {
+            e.preventDefault();
+            e.target.closest('.formset-row').remove();
+            formCount--;
+            updateTotalForms();
+        }
+    });
+
+    // Update total forms and renumber indices
+    function updateTotalForms() {
+        const forms = formsetContainer.querySelectorAll('.formset-row');
+        totalForms.value = forms.length;
+        
+        // Renumber all form fields
+        forms.forEach((form, index) => {
+            form.querySelectorAll('input, select').forEach(input => {
+                input.name = input.name.replace(
+                    /{{ formset.prefix }}-(\d+)-/g, 
+                    `{{ formset.prefix }}-${index}-`
+                );
+                input.id = input.id.replace(
+                    /{{ formset.prefix }}-(\d+)-/g,
+                    `{{ formset.prefix }}-${index}-`
+                );
+            });
+        });
+    }
+    
+    // Initial setup
+    updateTotalForms();
+
+    // Add quantity validation
+    formsetContainer.addEventListener('input', function(e) {
+        if (e.target.classList.contains('quantity-input')) {
+            validateQuantity(e.target);
+        }
+    });
+
+    // Form submission validation
+    document.getElementById('outgoingForm').addEventListener('submit', function(e) {
+        const quantityInputs = document.querySelectorAll('.quantity-input');
+        let hasError = false;
+
+        quantityInputs.forEach(input => {
+            if (!validateQuantity(input)) {
+                hasError = true;
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            alert('Please correct the invalid quantities');
+        }
+    });
+
+    function validateQuantity(input) {
+        const value = parseInt(input.value);
+        const isValid = !isNaN(value) && value > 0;
+        
+        input.classList.toggle('is-invalid', !isValid);
+        const feedback = input.nextElementSibling;
+        feedback.textContent = isValid ? '' : 'Please enter a valid quantity';
+        
+        return isValid;
+    }
+
+    // Add Bootstrap classes to form elements
+    document.querySelectorAll('#formset-container select[name*="supply"]').forEach(el => {
+        el.classList.add('form-select');
+    });
+    
+    document.querySelectorAll('#formset-container input[name*="quantity"]').forEach(el => {
+        el.classList.add('form-control', 'quantity-input');
+    });
+});
+</script>
+{% endblock %}

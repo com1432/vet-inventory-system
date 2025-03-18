@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>{{ object.name }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <!-- Inventory Status -->
+                <div class="col-md-6">
+                    <div class="alert {% if object.needs_reorder %}alert-danger{% else %}alert-success{% endif %}">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-boxes me-2"></i>
+                            Inventory Status
+                        </h5>
+                        <hr>
+                        <p class="mb-1">
+                            Current Quantity: <strong>{{ object.quantity }}</strong>
+                        </p>
+                        <p class="mb-0">
+                            Reorder Level: <strong>{{ object.reorder_level }}</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Expiration Status -->
+                <div class="col-md-6">
+                    <div class="alert 
+                        {% if object.expiration_status == 'expired' %}alert-dark
+                        {% elif object.expiration_status == 'critical' %}alert-danger
+                        {% elif object.expiration_status == 'warning' %}alert-warning
+                        {% else %}alert-info{% endif %}">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-clock me-2"></i>
+                            Expiration Status
+                        </h5>
+                        <hr>
+                        {% if object.expiration_date %}
+                            <p class="mb-1">
+                                Date: <strong>{{ object.expiration_date|date:"M d, Y" }}</strong>
+                            </p>
+                            <p class="mb-0">
+                                Status: <strong>{{ object.expiration_status|title }}</strong>
+                            </p>
+                        {% else %}
+                            <p class="mb-0">This item does not expire</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Section -->
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="mb-3">Details</h5>
+                    <div class="mb-3">
+                        {{ object.description|linebreaks }}
+                    </div>
+                    <small class="text-muted">
+                        Last updated: {{ object.last_updated|date:"M d, Y H:i" }}
+                    </small>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Actions</h5>
+                            <div class="d-grid gap-2">
+                                <!-- Edit Item URL -->
+                                <a href="{% url 'office_supplies:supply-update' object.pk %}" 
+                                   class="btn btn-warning btn-sm">
+                                   <i class="fas fa-edit me-2"></i>Edit Item
+                                </a>
+                                
+                                <!-- Delete Item URL -->
+                                <a href="{% url 'office_supplies:supply-delete' object.pk %}" 
+                                   class="btn btn-danger btn-sm">
+                                   <i class="fas fa-trash me-2"></i>Delete Item
+                                </a>
+                                
+                                <!-- Back to List URL -->
+                                <a href="{% url 'office_supplies:supply-list' %}" 
+                                   class="btn btn-secondary btn-sm">
+                                   <i class="fas fa-arrow-left me-2"></i>Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

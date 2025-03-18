@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-briefcase me-2"></i>{{ title }}</h4>
+            <div class="btn-group">
+                <a href="?format=pdf&type=all" class="btn btn-glass">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </a>
+                <a href="?format=excel&type=all" class="btn btn-glass">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Office-specific Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="dashboard-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x text-primary mb-3"></i>
+                    <h5>Total Items</h5>
+                    <h2 class="mb-0">{{ total_supplies }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                    <h5>Low Stock Items</h5>
+                    <h2 class="mb-0">{{ low_stock_count }}</h2>
+                    <a href="?format=pdf&type=low_stock" class="btn btn-sm btn-warning mt-2">Export Report</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-danger mb-3"></i>
+                    <h5>Expiring Soon</h5>
+                    <h2 class="mb-0">{{ expiring_soon_count }}</h2>
+                    <a href="?format=pdf&type=expiring" class="btn btn-sm btn-danger mt-2">Export Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Summary -->
+    <div class="dashboard-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-folder me-2"></i>Category Summary</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Total Items</th>
+                            <th>Total Quantity</th>
+                            <th>Low Stock Items</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories_summary %}
+                        <tr>
+                            <td>{{ category.category__name }}</td>
+                            <td>{{ category.total_items }}</td>
+                            <td>{{ category.total_quantity }}</td>
+                            <td>
+                                {% if category.low_stock_items > 0 %}
+                                <span class="badge bg-warning">{{ category.low_stock_items }}</span>
+                                {% else %}
+                                <span class="badge bg-success">0</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Usage -->
+    <div class="dashboard-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Top Monthly Usage</h5>
+        </div>
+        <div class="card-body">
+            {% for item in monthly_usage %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>{{ item.name }}</span>
+                <span class="badge bg-info">{{ item.usage }} used</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Items -->
+    <div class="dashboard-card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Reorder Level</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supply in supplies %}
+                        <tr>
+                            <td>{{ supply.name }}</td>
+                            <td>{{ supply.category.name }}</td>
+                            <td class="{% if supply.quantity <= supply.reorder_level %}text-warning fw-bold{% endif %}">
+                                {{ supply.quantity }}
+                            </td>
+                            <td>{{ supply.reorder_level }}</td>
+                            <td>
+                                {% if supply.quantity <= supply.reorder_level %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-exclamation-triangle"></i> Low Stock
+                                    </span>
+                                {% endif %}
+                                {% if supply.expiration_date %}
+                                    <span class="badge bg-{% if supply.expiration_status == 'expired' %}danger{% else %}warning{% endif %}">
+                                        <i class="fas fa-clock"></i> 
+                                        {{ supply.expiration_date|date:"M d, Y" }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <i class="fas fa-box-open fa-2x mb-3 text-muted"></i>
+                                <p class="mb-0">No supplies found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Items -->
+    {% if low_stock %}
+    <div class="dashboard-card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Reorder Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supply in low_stock %}
+                        <tr>
+                            <td>{{ supply.name }}</td>
+                            <td>{{ supply.category.name }}</td>
+                            <td class="text-warning fw-bold">{{ supply.quantity }}</td>
+                            <td>{{ supply.reorder_level }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

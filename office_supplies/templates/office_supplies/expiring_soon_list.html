@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-lg">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-clock me-2"></i>Expiring Soon Items
+            </h4>
+            <a href="{% url 'office_supplies:supply-list' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to Inventory
+            </a>
+        </div>
+
+        <div class="card-body">
+            {% if supplies %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-warning">
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Expiration Date</th>
+                            <th>Days Until Expiry</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supply in supplies %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-box text-warning me-2"></i>
+                                    {{ supply.name }}
+                                </div>
+                            </td>
+                            <td>{{ supply.category.name }}</td>
+                            <td>{{ supply.quantity }}</td>
+                            <td>
+                                {% if supply.expiration_date %}
+                                <span class="badge {% if supply.expiration_date < now %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    {{ supply.expiration_date|date:"M d, Y" }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">No Expiry</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if supply.expiration_date %}
+                                <span class="badge bg-warning text-dark">
+                                    {{ supply.expiration_date|timeuntil:now }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'office_supplies:supply-update' supply.pk %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'office_supplies:supply-delete' supply.pk %}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Are you sure you want to delete this item?');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5>No Items Expiring Soon</h5>
+                <p class="text-muted">All items are within safe expiration dates.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.badge {
+    font-size: 0.875rem;
+    padding: 0.5em 0.75em;
+}
+
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+}
+</style>
+{% endblock %}
